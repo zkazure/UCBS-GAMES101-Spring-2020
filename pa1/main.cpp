@@ -6,8 +6,7 @@
 
 constexpr double MY_PI = 3.1415926;
 
-Eigen::Matrix4f get_view_matrix(Eigen::Vector3f eye_pos)
-{
+Eigen::Matrix4f get_view_matrix(Eigen::Vector3f eye_pos) {
     Eigen::Matrix4f view = Eigen::Matrix4f::Identity();
 
     Eigen::Matrix4f translate;
@@ -19,33 +18,60 @@ Eigen::Matrix4f get_view_matrix(Eigen::Vector3f eye_pos)
     return view;
 }
 
-Eigen::Matrix4f get_model_matrix(float rotation_angle)
-{
+Eigen::Matrix4f get_model_matrix(float rotation_angle) {
+    // Students will implement this function
     Eigen::Matrix4f model = Eigen::Matrix4f::Identity();
 
-    // TODO: Implement this function
-    // Create the model matrix for rotating the triangle around the Z axis.
-    // Then return it.
+    Eigen::Matrix4f translate;
+    float rad = rotation_angle * std::acos(-1) / 180.0f;
+    translate << std::cos(rad), -1 * std::sin(rad), 0, 0, std::sin(rad),
+        std::cos(rad), 0, 0, 0, 0, 1, 0, 0, 0, 0, 1;
+    model = translate * model;
 
     return model;
 }
 
 Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio,
-                                      float zNear, float zFar)
-{
+                                      float zNear, float zFar) {
     // Students will implement this function
 
     Eigen::Matrix4f projection = Eigen::Matrix4f::Identity();
 
-    // TODO: Implement this function
-    // Create the projection matrix for the given parameters.
-    // Then return it.
+    Eigen::Matrix4f t1, t2;
+    t2 << zNear, 0, 0, 0, 0, zNear, 0, 0, 0, 0, zNear + zFar, -1 * zNear * zFar,
+        0, 0, 1, 0; // perspective to orthographic
+    // this matrix did not require move transformation
+    float rad = eye_fov * std::acos(-1) / 180.0f;
+    float height = zNear * std::tan(rad) * 2;
+    float width = height / aspect_ratio;
+    float depth = zNear - zFar;
+    t1 << 2 / width, 0, 0, 0, 0, 2 / height, 0, 0, 0, 0, 2 / depth, 0, 0, 0, 0,
+        1;
+
+    projection = t1 * t2 * projection;
 
     return projection;
 }
 
-int main(int argc, const char** argv)
-{
+Eigen::Matrix4f get_rotation(Eigen::Vector3f axis, float angle) {
+    Eigen::Matrix4f rotation = Eigen::Matrix4f::Identity();
+
+    float rad = angle * std::acos(-1) / 180.0f;
+    Eigen::Vector3f n = axis.normalized();
+
+    Eigen::Matrix3f t1, t2, t3;
+    t1 = std::cos(rad) * Eigen::Matrix3f::Identity();
+    t2 = (1 - std::cos(angle)) * n * n.transpose();
+    t3 << 0, -1 * n.z(), n.y(), n.z(), 0, -1 * n.x(), -1 * n.y(), n.x(), 0;
+    t3 *= std::sin(rad);
+    Eigen::Matrix3f R = t1 + t2 + t3;
+
+    rotation.block<4, 4>(0, 0) = R;
+
+    return rotation;
+}
+
+int main(int argc, const char **argv) {
     float angle = 0;
     bool command_line = false;
     std::string filename = "output.png";
@@ -55,8 +81,7 @@ int main(int argc, const char** argv)
         angle = std::stof(argv[2]); // -r by default
         if (argc == 4) {
             filename = std::string(argv[3]);
-        }
-        else
+        } else
             return 0;
     }
 
@@ -108,8 +133,7 @@ int main(int argc, const char** argv)
 
         if (key == 'a') {
             angle += 10;
-        }
-        else if (key == 'd') {
+        } else if (key == 'd') {
             angle -= 10;
         }
     }
