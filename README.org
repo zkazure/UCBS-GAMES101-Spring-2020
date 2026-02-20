@@ -1,0 +1,6 @@
+#+title: UCBS GAMES101 Spring 2022 Assignments
+
+#+begin_src sh
+  sudo apt update
+  sudo apt install libeigen3-dev libopencv-dev
+#+end_src
