@@ -6,8 +6,7 @@
 
 constexpr double MY_PI = 3.1415926;
 
-Eigen::Matrix4f get_view_matrix(Eigen::Vector3f eye_pos)
-{
+Eigen::Matrix4f get_view_matrix(Eigen::Vector3f eye_pos) {
     Eigen::Matrix4f view = Eigen::Matrix4f::Identity();
 
     Eigen::Matrix4f translate;
@@ -19,8 +18,7 @@ Eigen::Matrix4f get_view_matrix(Eigen::Vector3f eye_pos)
     return view;
 }
 
-Eigen::Matrix4f get_model_matrix(float rotation_angle)
-{
+Eigen::Matrix4f get_model_matrix(float rotation_angle) {
     Eigen::Matrix4f model = Eigen::Matrix4f::Identity();
 
     // TODO: Implement this function
@@ -31,8 +29,7 @@ Eigen::Matrix4f get_model_matrix(float rotation_angle)
 }
 
 Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio,
-                                      float zNear, float zFar)
-{
+                                      float zNear, float zFar) {
     // Students will implement this function
 
     Eigen::Matrix4f projection = Eigen::Matrix4f::Identity();
@@ -44,8 +41,7 @@ Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio,
     return projection;
 }
 
-int main(int argc, const char** argv)
-{
+int main(int argc, const char **argv) {
     float angle = 0;
     bool command_line = false;
     std::string filename = "output.png";
@@ -55,8 +51,7 @@ int main(int argc, const char** argv)
         angle = std::stof(argv[2]); // -r by default
         if (argc == 4) {
             filename = std::string(argv[3]);
-        }
-        else
+        } else
             return 0;
     }
 
@@ -108,8 +103,7 @@ int main(int argc, const char** argv)
 
         if (key == 'a') {
             angle += 10;
-        }
-        else if (key == 'd') {
+        } else if (key == 'd') {
             angle -= 10;
         }
     }
