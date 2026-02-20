@@ -23,9 +23,9 @@ Eigen::Matrix4f get_model_matrix(float rotation_angle) {
     Eigen::Matrix4f model = Eigen::Matrix4f::Identity();
 
     Eigen::Matrix4f translate;
-    translate << std::cos(rotation_angle), -1 * std::sin(rotation_angle), 0, 0,
-        std::sin(rotation_angle), std::cos(rotation_angle), 0, 0, 0, 0, 1, 0, 0,
-        0, 0, 1;
+    float rad = rotation_angle * std::acos(-1) / 180.0f;
+    translate << std::cos(rad), -1 * std::sin(rad), 0, 0, std::sin(rad),
+        std::cos(rad), 0, 0, 0, 0, 1, 0, 0, 0, 0, 1;
     model = translate * model;
 
     return model;
