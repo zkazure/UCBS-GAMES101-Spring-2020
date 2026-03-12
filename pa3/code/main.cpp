@@ -37,7 +37,7 @@ Eigen::Matrix4f get_model_matrix(float angle) {
 
 Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio,
                                       float zNear, float zFar) {
-    // TODO: Use the same projection matrix from the previous assignments
+    // DONE: Use the same projection matrix from the previous assignments
     Eigen::Matrix4f projection = Eigen::Matrix4f::Identity();
 
     Eigen::Matrix4f t1, t2;
