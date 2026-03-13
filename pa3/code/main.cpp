@@ -202,7 +202,7 @@ displacement_fragment_shader(const fragment_shader_payload &payload) {
 
     float kh = 0.2, kn = 0.1;
 
-    // TODO: Implement displacement mapping here
+    // DONE: Implement displacement mapping here
     // Let n = normal = (x, y, z)
     // Vector t = (x*y/sqrt(x*x+z*z),sqrt(x*x+z*z),z*y/sqrt(x*x+z*z))
     // Vector b = n cross product t
@@ -212,13 +212,50 @@ displacement_fragment_shader(const fragment_shader_payload &payload) {
     // Vector ln = (-dU, -dV, 1)
     // Position p = p + kn * n * h(u,v)
     // Normal n = normalize(TBN * ln)
+    normal.normalize();
+    float x = normal.x(), y = normal.y(), z = normal.z();
+    Eigen::Vector3f t =
+        Eigen::Vector3f((x * y) / std::sqrt(x * x + z * z),
+                        std::sqrt(x * x + z * z), z * y / sqrt(x * x + z * z));
+    Eigen::Vector3f b = normal.cross(t);
+    Eigen::Matrix3f TBN;
+    TBN << t.x(), b.x(), x, t.y(), b.y(), y, t.z(), b.z(), z;
+
+    auto u = payload.tex_coords.x();
+    auto v = payload.tex_coords.y();
+    auto h = payload.texture->height;
+    auto w = payload.texture->width;
+
+    auto dU = kh * kn *
+              (payload.texture->getColor((u + 1) / w, v).norm() -
+               payload.texture->getColor(u, v).norm());
+    auto dV = kh * kn *
+              (payload.texture->getColor(u, (v + 1) / h).norm() -
+               payload.texture->getColor(u, v).norm());
+    Eigen::Vector3f ln(-dU, -dV, 1);
+    normal = (TBN * ln).normalized();
 
     Eigen::Vector3f result_color = {0, 0, 0};
 
     for (auto &light : lights) {
-        // TODO: For each light source in the code, calculate what the
+        // DONE: For each light source in the code, calculate what the
         // *ambient*, *diffuse*, and *specular* components are. Then, accumulate
         // that result on the *result_color* object.
+        auto light_dir = (light.position - point).normalized();
+        auto view_dir = (eye_pos - point).normalized();
+        auto half_vector = (light_dir + view_dir).normalized();
+
+        auto distance_square =
+            (light.position - point).dot(light.position - point);
+
+        auto ambient = ka.cwiseProduct(amb_light_intensity);
+        auto diffuse = kd.cwiseProduct(light.intensity / distance_square *
+                                       std::max(0.0f, normal.dot(light_dir)));
+        auto specular =
+            ks.cwiseProduct(light.intensity / distance_square *
+                            std::max(0.0f, normal.dot(half_vector)));
+
+        result_color = ambient + diffuse + specular;
     }
 
     return result_color * 255.f;
