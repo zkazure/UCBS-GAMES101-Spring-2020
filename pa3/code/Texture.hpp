@@ -5,6 +5,7 @@
 #ifndef RASTERIZER_TEXTURE_H
 #define RASTERIZER_TEXTURE_H
 #include "global.hpp"
+#include <algorithm>
 #include <cmath>
 #include <eigen3/Eigen/Eigen>
 #include <eigen3/Eigen/src/Core/Matrix.h>
@@ -34,10 +35,15 @@ class Texture {
         float x = u * width;
         float y = (1 - v) * height;
 
-        int u1 = std::floor(x);
-        int v1 = std::floor(y);
+        int u1 = static_cast<int>(std::floor(x));
+        int v1 = static_cast<int>(std::floor(y));
         int u2 = u1 + 1;
         int v2 = v1 + 1;
+
+        u1 = std::clamp(u1, 0, width - 1);
+        u2 = std::clamp(u2, 0, width - 1);
+        v1 = std::clamp(v1, 0, height - 1);
+        v2 = std::clamp(v2, 0, height - 1);
 
         float s = x - std::floor(x);
         float t = y - std::floor(y);

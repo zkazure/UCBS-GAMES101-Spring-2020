@@ -226,12 +226,12 @@ displacement_fragment_shader(const fragment_shader_payload &payload) {
     auto h = payload.texture->height;
     auto w = payload.texture->width;
 
-    auto dU = kh * kn *
-              (payload.texture->getColorBilinear((u + 1) / w, v).norm() -
-               payload.texture->getColorBilinear(u, v).norm());
-    auto dV = kh * kn *
-              (payload.texture->getColorBilinear(u, (v + 1) / h).norm() -
-               payload.texture->getColorBilinear(u, v).norm());
+    float dU = kh * kn *
+               (payload.texture->getColorBilinear(u + 1.0f / w, v).norm() -
+                payload.texture->getColorBilinear(u, v).norm());
+    float dV = kh * kn *
+               (payload.texture->getColorBilinear(u, v + 1.0f / h).norm() -
+                payload.texture->getColorBilinear(u, v).norm());
     Eigen::Vector3f ln(-dU, -dV, 1);
     normal = (TBN * ln).normalized();
 
@@ -302,14 +302,14 @@ Eigen::Vector3f bump_fragment_shader(const fragment_shader_payload &payload) {
 
     auto u = payload.tex_coords.x();
     auto v = payload.tex_coords.y();
-    auto h = payload.texture->height;
-    auto w = payload.texture->width;
+    float h = static_cast<float>(payload.texture->height);
+    float w = static_cast<float>(payload.texture->width);
 
     auto dU = kh * kn *
-              (payload.texture->getColorBilinear((u + 1) / w, v).norm() -
+              (payload.texture->getColorBilinear(u + 1.0f / w, v).norm() -
                payload.texture->getColorBilinear(u, v).norm());
     auto dV = kh * kn *
-              (payload.texture->getColorBilinear(u, (v + 1) / h).norm() -
+              (payload.texture->getColorBilinear(u, v + 1.0f / h).norm() -
                payload.texture->getColorBilinear(u, v).norm());
     Eigen::Vector3f ln(-dU, -dV, 1);
     normal = (TBN * ln).normalized();
