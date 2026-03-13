@@ -44,12 +44,12 @@ Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio,
     t2 << zNear, 0, 0, 0, 0, zNear, 0, 0, 0, 0, zNear + zFar, -1 * zNear * zFar,
         0, 0, 1, 0; // perspective to orthographic
     // this matrix did not require move transformation
-    float rad = eye_fov * std::acos(-1) / 180.0f;
-    float height = zNear * std::tan(rad) * 2;
-    float width = height / aspect_ratio;
+    float rad = 0.5 * eye_fov * MY_PI / 180.0f;
+    float height = -1 * zNear * std::tan(rad) * 2;
+    float width = height * aspect_ratio;
     float depth = zNear - zFar;
-    t1 << 2 / width, 0, 0, 0, 0, 2 / height, 0, 0, 0, 0, 2 / depth, 0, 0, 0, 0,
-        1;
+    t1 << 2 / width, 0, 0, 0, 0, 2 / height, 0, 0, 0, 0, 2 / depth,
+        -(zNear + zFar) / (zNear - zFar), 0, 0, 0, 1;
 
     projection = t1 * t2 * projection;
 
