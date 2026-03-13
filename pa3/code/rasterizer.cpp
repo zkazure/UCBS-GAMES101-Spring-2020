@@ -239,7 +239,7 @@ static Eigen::Vector2f interpolate(float alpha, float beta, float gamma,
 // Screen space rasterization
 void rst::rasterizer::rasterize_triangle(
     const Triangle &t, const std::array<Eigen::Vector3f, 3> &view_pos) {
-    // TODO: From your HW3, get the triangle rasterization code.
+    // DONE: From your HW3, get the triangle rasterization code.
     auto v = t.toVector4();
 
     float xmax = std::max(v[0].x(), std::max(v[1].x(), v[2].x()));
@@ -247,15 +247,14 @@ void rst::rasterizer::rasterize_triangle(
     float ymax = std::max(v[0].y(), std::max(v[1].y(), v[2].y()));
     float ymin = std::min(v[0].y(), std::min(v[1].y(), v[2].y()));
 
-    float ss =
-        abs(v[0].x() * v[1].x() + v[0].y() * v[1].y() + v[0].z() * v[1].z()) /
-        2;
-
     for (int x = floor(xmin); x <= ceil(xmax); ++x) {
         for (int y = floor(ymin); y <= ceil(ymax); ++y) {
-            if (insideTriangle(x, y, t.v)) {
+            float pixel_x = x + 0.5f;
+            float pixel_y = y + 0.5f;
+
+            if (insideTriangle(pixel_x, pixel_y, t.v)) {
                 auto [alpha, beta, gamma] =
-                    computeBarycentric2D(x + 0.5, y + 0.5, t.v);
+                    computeBarycentric2D(pixel_x, pixel_y, t.v);
 
                 // DONE: Inside your rasterization loop:
                 //    * v[i].w() is the vertex view space depth value z.
@@ -268,40 +267,43 @@ void rst::rasterizer::rasterize_triangle(
                            gamma * v[2].z() / v[2].w();
                 zp *= Z; // 深度的插值
 
-                // TODO: Interpolate the attributes:
-                // auto interpolated_color
-                // auto interpolated_normal
-                // auto interpolated_texcoords
-                // auto interpolated_shadingcoords
-                auto interpolated_color = (alpha * t.color[0] / v[0].w() +
-                                           beta * t.color[1] / v[1].w() +
-                                           gamma * t.color[2] / v[2].w()) *
-                                          Z;
-                auto interpolated_normal = (alpha * t.normal[0] / v[0].w() +
-                                            beta * t.normal[1] / v[1].w() +
-                                            gamma * t.normal[2] / v[2].w()) *
-                                           Z;
-                auto interpolated_texcoords =
-                    (alpha * t.tex_coords[0] / v[0].w() +
-                     beta * t.tex_coords[1] / v[1].w() +
-                     gamma * t.tex_coords[2] / v[2].w()) *
-                    Z;
-                auto interpolated_shadingcoords = Eigen::Vector3f(0, 0, 0);
+                int index = get_index(x, y);
+                if (depth_buf[index] > zp) {
+                    depth_buf[index] = zp;
+                    // DONE: Interpolate the attributes:
+                    // auto interpolated_color
+                    // auto interpolated_normal
+                    // auto interpolated_texcoords
+                    // auto interpolated_shadingcoords
 
-                // Use: fragment_shader_payload payload( interpolated_color,
-                // interpolated_normal.normalized(), interpolated_texcoords,
-                // texture ?
-                // &*texture : nullptr); Use: payload.view_pos =
-                // interpolated_shadingcoords; Use: Instead of passing the
-                // triangle's color directly to the frame buffer, pass the color
-                // to the shaders first to get the final color; Use: auto
-                // pixel_color = fragment_shader(payload);
-                fragment_shader_payload payload(
-                    interpolated_color, interpolated_normal.normalized(),
-                    interpolated_texcoords, texture ? &*texture : nullptr);
-                auto pixel_color = fragment_shader(payload);
+                    auto interpolated_color =
+                        interpolate(alpha, beta, gamma, t.color[0], t.color[1],
+                                    t.color[2], 1.0f);
+                    auto interpolated_normal =
+                        interpolate(alpha, beta, gamma, t.normal[0],
+                                    t.normal[1], t.normal[2], 1.0f);
+                    auto interpolated_texcoords =
+                        interpolate(alpha, beta, gamma, t.tex_coords[0],
+                                    t.tex_coords[1], t.tex_coords[2], 1.0f);
+                    auto interpolated_shadingcoords =
+                        interpolate(alpha, beta, gamma, view_pos[0],
+                                    view_pos[1], view_pos[2], 1.0f);
 
-                set_pixel(Eigen::Vector2i(x, y), pixel_color);
+                    // Use: fragment_shader_payload payload( interpolated_color,
+                    // interpolated_normal.normalized(), interpolated_texcoords,
+                    // texture ?
+                    // &*texture : nullptr); Use: payload.view_pos =
+                    // interpolated_shadingcoords; Use: Instead of passing the
+                    // triangle's color directly to the frame buffer, pass the
+                    // color to the shaders first to get the final color; Use:
+                    // auto pixel_color = fragment_shader(payload);
+                    fragment_shader_payload payload(
+                        interpolated_color, interpolated_normal.normalized(),
+                        interpolated_texcoords, texture ? &*texture : nullptr);
+                    auto pixel_color = fragment_shader(payload);
+
+                    set_pixel(Eigen::Vector2i(x, y), pixel_color);
+                }
             }
         }
     }
