@@ -111,9 +111,25 @@ texture_fragment_shader(const fragment_shader_payload &payload) {
     Eigen::Vector3f result_color = {0, 0, 0};
 
     for (auto &light : lights) {
-        // TODO: For each light source in the code, calculate what the
+        // DONE: For each light source in the code, calculate what the
         // *ambient*, *diffuse*, and *specular* components are. Then, accumulate
         // that result on the *result_color* object.
+        auto light_dir = (light.position - point).normalized();
+        auto view_dir = (eye_pos - point).normalized();
+        auto half_vector = (light_dir + view_dir).normalized();
+        normal.normalize();
+
+        auto distance_square =
+            (light.position - point).dot(light.position - point);
+
+        auto ambient = ka.cwiseProduct(amb_light_intensity);
+        auto diffuse = kd.cwiseProduct(light.intensity / distance_square *
+                                       fmax(0.0f, normal.dot(light_dir)));
+        auto specular =
+            ks.cwiseProduct(light.intensity / distance_square *
+                            std::pow(fmax(0.0f, normal.dot(half_vector)), p));
+
+        result_color = ambient + diffuse + specular;
     }
 
     return result_color * 255.f;
