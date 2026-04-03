@@ -8,7 +8,7 @@
 bool rayTriangleIntersect(const Vector3f& v0, const Vector3f& v1, const Vector3f& v2, const Vector3f& orig,
                           const Vector3f& dir, float& tnear, float& u, float& v)
 {
-    // TODO: Implement this function that tests whether the triangle
+    // DONE: Implement this function that tests whether the triangle
     // that's specified bt v0, v1 and v2 intersects with the ray (whose
     // origin is *orig* and direction is *dir*)
     // Also don't forget to update tnear, u and v.
@@ -17,20 +17,20 @@ bool rayTriangleIntersect(const Vector3f& v0, const Vector3f& v1, const Vector3f
     Vector3f s1 = crossProduct(dir, e2), s2 = crossProduct(s, e1);
 
     float deno = dotProduct(s1, e1);
+    const float epsilon = 1e-4f;
+    if (std::fabs(deno) < epsilon)
+        return false;
+
     tnear = dotProduct(s2, e2) / deno;
     u = dotProduct(s1, s) / deno;
     v = dotProduct(s2, dir) / deno;
-    Vector3f inter = Vector3f(tnear, u, v);
 
-    float tmp0 = dotProduct(inter - v0, v1 - v0);
-    float tmp1 = dotProduct(inter - v1, v2 - v1);
-    float tmp2 = dotProduct(inter - v2, v0 - v2);
+    if (tnear < epsilon)
+        return false;
+    if (u < 0.f || v < 0.f || u + v > 1.f)
+        return false;
 
-    if ((tmp0 >= 0 && tmp1 >= 0 && tmp2 >= 0)
-        || (tmp0 <= 0 && tmp1 <= 0 && tmp2 <= 0))
-        return true;
-
-    return false;
+    return true;
 }
 
 class MeshTriangle : public Object
