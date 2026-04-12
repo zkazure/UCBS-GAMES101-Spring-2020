@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cassert>
 #include "BVH.hpp"
+#include "Intersection.hpp"
 
 BVHAccel::BVHAccel(std::vector<Object*> p, int maxPrimsInNode,
                    SplitMethod splitMethod)
@@ -104,6 +105,26 @@ Intersection BVHAccel::Intersect(const Ray& ray) const
 
 Intersection BVHAccel::getIntersection(BVHBuildNode* node, const Ray& ray) const
 {
-    // TODO Traverse the BVH to find intersection
+    // DONE Traverse the BVH to find intersection
+    const std::array<int, 3> dirIsNeg({int(ray.direction.x > 0),
+                                       int(ray.direction.y > 0),
+                                       int(ray.direction.z > 0)});
+    Intersection isert;
+    if (!node->bounds.IntersectP(ray, ray.direction_inv, dirIsNeg))
+        return isert;
+    const BVHBuildNode *curr = node;
+    while (!curr->object) {
+        if (curr->left->bounds.IntersectP(ray, ray.direction_inv, dirIsNeg)) {
+            curr = curr->left;
+            continue;
+        }
+        if (curr->right->bounds.IntersectP(ray, ray.direction_inv, dirIsNeg)) {
+            curr = curr->right;
+            continue;
+        }
+        return isert;
+    }
 
+    isert = curr->object->getIntersection(ray);
+    return isert;
 }
