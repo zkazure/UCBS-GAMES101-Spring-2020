@@ -1,3 +1,4 @@
+#include <queue>
 #include <algorithm>
 #include <cassert>
 #include "BVH.hpp"
@@ -110,22 +111,23 @@ Intersection BVHAccel::getIntersection(BVHBuildNode* node, const Ray& ray) const
                                        int(ray.direction.y > 0),
                                        int(ray.direction.z > 0)});
     Intersection isert;
-    if (!node->bounds.IntersectP(ray, ray.direction_inv, dirIsNeg))
-        return isert;
-    const BVHBuildNode *curr = node;
-    // TODO 相交的顺序呢？什么维度，和全部包围盒相交怎么办
-    while (!curr->object) {
-        if (curr->left->bounds.IntersectP(ray, ray.direction_inv, dirIsNeg)) {
-            curr = curr->left;
+
+    std::queue<BVHBuildNode *> que;
+    que.push(node);
+    while (!que.empty()) {
+        BVHBuildNode *curr = que.front();
+        que.pop();
+
+        if (!curr->bounds.IntersectP(ray, ray.direction_inv, dirIsNeg))
             continue;
+        if (curr->object) {
+            Intersection i_tmp = curr->object->getIntersection(ray);
+            if (i_tmp.happened && i_tmp.distance < isert.distance)
+                isert = i_tmp;
         }
-        if (curr->right->bounds.IntersectP(ray, ray.direction_inv, dirIsNeg)) {
-            curr = curr->right;
-            continue;
-        }
-        return isert;
+        if (curr->left) que.push(curr->left);
+        if (curr->right) que.push(curr->right);
     }
 
-    isert = curr->object->getIntersection(ray);
     return isert;
 }
