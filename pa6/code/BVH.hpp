@@ -55,7 +55,7 @@ struct BVHBuildNode {
 public:
     int splitAxis=0, firstPrimOffset=0, nPrimitives=0;
     // BVHBuildNode Public Methods
-    BVHBuildNode(){
+    BVHBuildNode() {
         bounds = Bounds3();
         left = nullptr;right = nullptr;
         object = nullptr;
