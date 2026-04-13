@@ -99,19 +99,19 @@ inline bool Bounds3::IntersectP(const Ray& ray, const Vector3f& invDir,
 
     // 三个方向上面求交点，然后取交集，法向量极其简单。
     // 利用得到的时间判断
-    float tMin = std::numeric_limits<float>::max();
-    float tMax = std::numeric_limits<float>::lowest();
+    float tEnter = std::numeric_limits<float>::lowest();
+    float tExit = std::numeric_limits<float>::max();
     for (int i = 0; i < 3; ++i) {
         if (dirIsNeg[i]) {
-            tMax = std::fmin(tMax, (pMax[i] - ray.origin[i]) * invDir[i]);
-            tMin = std::fmax(tMin, (pMin[i] - ray.origin[i]) * invDir[i]);
+            tExit = std::fmin(tExit, (pMax[i] - ray.origin[i]) * invDir[i]);
+            tEnter = std::fmax(tEnter, (pMin[i] - ray.origin[i]) * invDir[i]);
         } else {
-            tMax = std::fmin(tMax, (pMin[i] - ray.origin[i]) * invDir[i]);
-            tMin = std::fmax(tMin, (pMax[i] - ray.origin[i]) * invDir[i]);
+            tExit = std::fmin(tExit, (pMin[i] - ray.origin[i]) * invDir[i]);
+            tEnter = std::fmax(tEnter, (pMax[i] - ray.origin[i]) * invDir[i]);
         }
     }
 
-    if (tMax > tMin)
+    if (tExit > tEnter)
         return true;
 
     return false;
