@@ -5,6 +5,7 @@
 #include <fstream>
 #include "Scene.hpp"
 #include "Renderer.hpp"
+#include "Ray.hpp"
 
 
 inline float deg2rad(const float& deg) { return deg * M_PI / 180.0; }
@@ -37,7 +38,7 @@ void Renderer::Render(const Scene& scene)
             // Don't forget to normalize this direction!
             Vector3f dir(x, y, -1);
             dir = normalize(dir);
-            framebuffer[m++] = dir;
+            framebuffer[m++] = scene.castRay(Ray(eye_pos, dir), 0);
         }
         UpdateProgress(j / (float)scene.height);
     }
