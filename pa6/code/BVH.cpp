@@ -113,6 +113,7 @@ Intersection BVHAccel::getIntersection(BVHBuildNode* node, const Ray& ray) const
     if (!node->bounds.IntersectP(ray, ray.direction_inv, dirIsNeg))
         return isert;
     const BVHBuildNode *curr = node;
+    // TODO 相交的顺序呢？什么维度，和全部包围盒相交怎么办
     while (!curr->object) {
         if (curr->left->bounds.IntersectP(ray, ray.direction_inv, dirIsNeg)) {
             curr = curr->left;

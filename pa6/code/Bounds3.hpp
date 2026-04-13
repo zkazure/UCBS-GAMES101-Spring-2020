@@ -95,7 +95,24 @@ inline bool Bounds3::IntersectP(const Ray& ray, const Vector3f& invDir,
 {
     // invDir: ray direction(x,y,z), invDir=(1.0/x,1.0/y,1.0/z), use this because Multiply is faster that Division
     // dirIsNeg: ray direction(x,y,z), dirIsNeg=[int(x>0),int(y>0),int(z>0)], use this to simplify your logic
-    // TODO test if ray bound intersects
+    // DONE test if ray bound intersects
+
+    // 三个方向上面求交点，然后取交集，法向量极其简单。
+    // 利用得到的时间判断
+    float tMin = std::numeric_limits<double>::lowest();
+    float tMax = std::numeric_limits<double>::max();
+    for (int i = 0; i < 3; ++i) {
+        if (!dirIsNeg[i]) {
+            tMax = std::fmax(tMax, (pMax[i] - ray.origin[i]) * invDir[i]);
+            tMin = std::fmin(tMin, (pMin[i] - ray.origin[i]) * invDir[i]);
+        } else {
+            tMax = std::fmax(tMax, (pMin[i] - ray.origin[i]) * invDir[i]);
+            tMin = std::fmin(tMin, (pMax[i] - ray.origin[i]) * invDir[i]);
+        }
+    }
+
+    if (tMin > 0 && tMax > tMin)
+        return true;
 
     return false;
 }
