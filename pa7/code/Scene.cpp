@@ -71,52 +71,50 @@ Vector3f Scene::castRay(const Ray &ray, int depth) const
     if (p_inter.m->hasEmission()) return p_inter.m->getEmission();
 
     // float EPSILON = 0.0001;
-    Vector3f L_dir = Vector3f();
-    Vector3f L_indir = Vector3f();
+    Vector3f L_dir = 0.0;
+    Vector3f L_indir = 0.0;
 
     // sampleLight(inter, pdf_light)
     Intersection x_inter;
-    float pdf_light;
-    this->sampleLight(x_inter, pdf_light);
+    float pdf_light = 0.0;
+    sampleLight(x_inter, pdf_light);
 
     // Get x, ws, NN, emit from inter
-    Vector3f p = p_inter.coords;
-    Vector3f x = x_inter.coords;
-    Vector3f ws_dir = (x - p).normalized();
-    float ws_dis = (x - p).norm();
+    Vector3f ws_dir = (x_inter.coords - p_inter.coords).normalized();
+    float ws_dis = (x_inter.coords - p_inter.coords).norm();
     Vector3f N = p_inter.normal;
     Vector3f NN = x_inter.normal;
     Vector3f emit = x_inter.emit;
 
     // Shoot a ray from p to x
-    Ray ws_ray = Ray(p + N * EPSILON, ws_dir);
-    Intersection ws_inter = intersect(ws_ray);
+    Ray ws_ray = Ray(p_inter.coords + N * EPSILON, ws_dir);
 
     // If the ray is not blocked in the middle
-    if (ws_inter.distance - ws_dis > -EPSILON)
+    if (ws_dis - intersect(ws_ray).distance > -EPSILON)
         L_dir = emit
-                * p_inter.m->eval(ray.direction, ws_ray.direction, N)
+                * p_inter.m->eval(ws_ray.direction, -ray.direction, N)
                 * dotProduct(ws_ray.direction, N)
                 * dotProduct(-ws_ray.direction, NN)
                 / std::pow(ws_dis, 2)
                 / pdf_light;
 
     // Test Russian Roulette with probability RussianRoulette
-    if (get_random_float() > RussianRoulette) return L_dir;
+    if (get_random_float() > RussianRoulette)
+        return L_dir;
 
     // wi = sample(wo, N)
-    Vector3f wi_dir = p_inter.m->sample(ray.direction, N).normalized();
+    Vector3f wi_dir = p_inter.m->sample(-ray.direction, N).normalized();
 
     // Trace a ray r(p, wi)
-    Ray wi_ray = Ray(p_inter.coords + p_inter.normal * EPSILON, wi_dir);
+    Ray wi_ray = Ray(p_inter.coords + N * EPSILON, wi_dir);
 
     // If ray r hit a non-emitting object at q
     Intersection wi_inter = intersect(wi_ray);
     if (wi_inter.happened && !wi_inter.m->hasEmission())
         L_indir = castRay(wi_ray, depth + 1)
-                  * p_inter.m->eval(ray.direction, wi_dir, N)
-                  * dotProduct(wi_dir, N)
-                  / p_inter.m->pdf(ray.direction, wi_dir, N)
+                  * p_inter.m->eval(wi_ray.direction, -ray.direction, N)
+                  * dotProduct(wi_ray.direction, N)
+                  / p_inter.m->pdf(wi_ray.direction, -ray.direction, N)
                   / RussianRoulette;
 
     return L_dir + L_indir;
