@@ -87,7 +87,7 @@ namespace CGL {
                 if (!m->pinned)
                     {
                         Vector2D temp_position = m->position;
-                        // TODO (Part 3.1): Set the new position of the rope mass
+                        // DONE (Part 3.1): Set the new position of the rope mass
                         Vector2D a = m->forces / m->mass + gravity;
                         m->position = temp_position * 2 - m->last_position
                                       + a * delta_t * delta_t;
