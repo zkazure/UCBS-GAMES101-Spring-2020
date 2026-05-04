@@ -2,6 +2,8 @@
 // Created by goksu on 2/25/20.
 //
 
+#include <mutex>
+#include <thread>
 #include <fstream>
 #include "Scene.hpp"
 #include "Renderer.hpp"
@@ -26,22 +28,68 @@ void Renderer::Render(const Scene& scene)
     // change the spp value to change sample ammount
     int spp = 16;
     std::cout << "SPP: " << spp << "\n";
-    for (uint32_t j = 0; j < scene.height; ++j) {
-        for (uint32_t i = 0; i < scene.width; ++i) {
-            // generate primary ray direction
+
+    const int total_pixels = scene.height * scene.width;
+    std::atomic<int> completed_pixels(0);
+    const int num_threads = std::thread::hardware_concurrency();
+    std::vector<std::thread> threads;
+    std::mutex mutex;
+
+    auto update_progress = [&]() {
+        while (completed_pixels < total_pixels) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            float progress = static_cast<float>(completed_pixels) / total_pixels;
+            UpdateProgress(progress);
+        }
+    };
+
+    std::thread progress_thread(update_progress);
+
+    auto worker = [&](int start, int end) {
+        for (int pixel_idx = start; pixel_idx < end; pixel_idx++) {
+            int i = pixel_idx % scene.width;
+            int j = pixel_idx / scene.width;
+
             float x = (2 * (i + 0.5) / (float)scene.width - 1) *
                       imageAspectRatio * scale;
             float y = (1 - 2 * (j + 0.5) / (float)scene.height) * scale;
 
             Vector3f dir = normalize(Vector3f(-x, y, 1));
+            Vector3f color(0.0);
             for (int k = 0; k < spp; k++){
-                framebuffer[m] += scene.castRay(Ray(eye_pos, dir), 0) / spp;  
+                framebuffer[pixel_idx] += scene.castRay(Ray(eye_pos, dir), 0) / spp;
             }
-            m++;
+            completed_pixels++;
         }
-        UpdateProgress(j / (float)scene.height);
+    };
+
+    int chunk_size = total_pixels / num_threads;
+    for (int t = 0; t < num_threads; ++t) {
+        int start = t * chunk_size;
+        int end = (t == num_threads - 1) ? total_pixels : start + chunk_size;
+        threads.emplace_back(worker, start, end);
     }
-    UpdateProgress(1.f);
+
+    for (auto &thread : threads) thread.join();
+    progress_thread.join();
+    UpdateProgress(1.0f);
+
+    // for (uint32_t j = 0; j < scene.height; ++j) {
+    //     for (uint32_t i = 0; i < scene.width; ++i) {
+    //         // generate primary ray direction
+    //         float x = (2 * (i + 0.5) / (float)scene.width - 1) *
+    //                   imageAspectRatio * scale;
+    //         float y = (1 - 2 * (j + 0.5) / (float)scene.height) * scale;
+
+    //         Vector3f dir = normalize(Vector3f(-x, y, 1));
+    //         for (int k = 0; k < spp; k++){
+    //             framebuffer[m] += scene.castRay(Ray(eye_pos, dir), 0) / spp;
+    //         }
+    //         m++;
+    //     }
+    //     UpdateProgress(j / (float)scene.height);
+    // }
+    // UpdateProgress(1.f);
 
     // save framebuffer to file
     FILE* fp = fopen("binary.ppm", "wb");
@@ -53,5 +101,5 @@ void Renderer::Render(const Scene& scene)
         color[2] = (unsigned char)(255 * std::pow(clamp(0, 1, framebuffer[i].z), 0.6f));
         fwrite(color, 1, 3, fp);
     }
-    fclose(fp);    
+    fclose(fp);
 }

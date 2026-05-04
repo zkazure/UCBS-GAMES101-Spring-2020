@@ -6,6 +6,7 @@
 #include "OBJ_Loader.hpp"
 #include "Object.hpp"
 #include "Triangle.hpp"
+#include "Vector.hpp"
 #include <cassert>
 #include <array>
 
@@ -194,7 +195,7 @@ public:
 
         return intersec;
     }
-    
+
     void Sample(Intersection &pos, float &pdf){
         bvh->Sample(pos, pdf);
         pos.emit = m->getEmission();
@@ -251,8 +252,17 @@ inline Intersection Triangle::getIntersection(Ray ray)
     if (v < 0 || u + v > 1)
         return inter;
     t_tmp = dotProduct(e2, qvec) * det_inv;
+    if (t_tmp < 0) return inter;
 
-    // TODO find ray triangle intersection
+    // DONE find ray triangle intersection
+    inter.happened = true;
+    inter.coords = ray(t_tmp);
+    inter.tcoords = Vector3f(u, v, 0);
+    inter.normal = normal;
+    inter.emit = m->m_emission;
+    inter.distance = t_tmp;
+    inter.obj = this;
+    inter.m = m;
 
     return inter;
 }
