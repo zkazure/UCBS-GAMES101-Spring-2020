@@ -36,14 +36,30 @@ namespace CGL {
     {
         for (auto &s : springs)
             {
-                // TODO (Part 2): Use Hooke's law to calculate the force on a node
+                // DONE (Part 2): Use Hooke's law to calculate the force on a node
+                Vector2D dir = s->m2->position - s->m1->position;
+                double dis = dir.norm();
+
+                Vector2D force = -s->k * dir / dis * (dis - s->rest_length);
+                s->m1->forces -= force;
+                s->m2->forces += force;
             }
 
         for (auto &m : masses)
             {
                 if (!m->pinned)
                     {
-                        // TODO (Part 2): Add the force due to gravity, then compute the new velocity and position
+                        // DONE (Part 2): Add the force due to gravity, then compute the new velocity and position
+
+                        m->last_position = m->position;
+                        // explicit
+                        // m->position += m->velocity * delta_t;
+
+                        Vector2D a = m->forces / m->mass + gravity;
+                        m->velocity += a * delta_t;
+
+                        // semi-implicit
+                        m->position += m->velocity * delta_t;
 
                         // TODO (Part 2): Add global damping
                     }
