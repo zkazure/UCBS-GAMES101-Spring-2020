@@ -12,7 +12,7 @@ namespace CGL {
     Rope::Rope(Vector2D start, Vector2D end, int num_nodes, float node_mass, float k, vector<int> pinned_nodes)
     {
         // DONE (Part 1): Create a rope starting at `start`, ending at `end`, and containing `num_nodes` nodes.
-        Vector2D step = (end - start) / num_nodes;
+        Vector2D step = (end - start) / (num_nodes - 1);
         for (int i = 0; i < num_nodes; ++i) {
             Mass *m;
             if (i == num_nodes - 1)
