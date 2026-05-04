@@ -113,7 +113,7 @@ inline bool Bounds3::IntersectP(const Ray& ray, const Vector3f& invDir,
         }
     }
 
-    if (tExit >= 0 && tExit > tEnter)
+    if (tExit >= 0 && tExit >= tEnter)
         return true;
 
     return false;
