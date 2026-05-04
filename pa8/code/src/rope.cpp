@@ -43,6 +43,12 @@ namespace CGL {
                 Vector2D force = -s->k * dir / dis * (dis - s->rest_length);
                 s->m1->forces -= force;
                 s->m2->forces += force;
+
+                // float damping_factor = 0.00005;
+                // Vector2D dot_dir = s->m2->velocity - s->m1->velocity;
+                // force = -damping_factor * dir / dis * dot_dir * dir / dis;
+                // s->m1->forces -= force;
+                // s->m2->forces += force;
             }
 
         for (auto &m : masses)
@@ -61,7 +67,9 @@ namespace CGL {
                         // semi-implicit
                         m->position += m->velocity * delta_t;
 
-                        // TODO (Part 2): Add global damping
+                        // DONE (Part 2): Add global damping
+                        float damping_factor = 0.00005;
+                        m->velocity *= (1 - damping_factor);
                     }
 
                 // Reset all forces on each mass
