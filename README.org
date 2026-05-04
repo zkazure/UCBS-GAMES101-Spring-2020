@@ -4,3 +4,8 @@
   sudo apt update
   sudo apt install libeigen3-dev libopencv-dev
 #+end_src
+
+
+待完成：
+- [ ] pa6 的提高任务 SAH 加速。
+- [ ] pa7 的提高任务 Microfacet 材质。
