@@ -89,11 +89,14 @@ namespace CGL {
                         Vector2D temp_position = m->position;
                         // DONE (Part 3.1): Set the new position of the rope mass
                         Vector2D a = m->forces / m->mass + gravity;
-                        m->position = temp_position * 2 - m->last_position
+
+                        // DONE (Part 4): Add global Verlet damping
+                        float damping_factor = 0.00005;
+                        m->position = temp_position +
+                                      (1 - damping_factor) *
+                                      (temp_position - m->last_position)
                                       + a * delta_t * delta_t;
                         m->last_position = temp_position;
-
-                        // TODO (Part 4): Add global Verlet damping
                     }
                 m->forces = Vector2D(0, 0);
             }
